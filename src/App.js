@@ -1,25 +1,40 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import Weather from './components/weather';
 
-function App() {
+export default function App() {
+  const [lat, setLat] = useState(null);
+  const [long, setLong] = useState(null);
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      navigator.geolocation.getCurrentPosition(function (position) {
+        setLat(position.coords.latitude);
+        setLong(position.coords.longitude);
+      });
+
+      try {
+        if (lat !== null && long !== null) {
+          const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&units=metric&APPID=c924cf8feb20d9a536b4d89ed2c796d7`);
+          const result = await response.json();
+          setData(result);
+          console.log(result);
+        }
+      } catch (error) {
+        console.error("Error fetching weather data:", error);
+      }
+    };
+
+    fetchData();
+  }, [lat, long]);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {data && data.main ? (
+        <Weather weatherData={data} />
+      ) : (
+        <div>Loading...</div>
+      )}
     </div>
   );
 }
-
-export default App;
